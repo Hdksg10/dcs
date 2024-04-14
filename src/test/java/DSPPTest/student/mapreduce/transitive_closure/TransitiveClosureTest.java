@@ -28,9 +28,8 @@ public class TransitiveClosureTest extends TestTemplate {
     ToolRunner.run(new TransitiveClosureRunner(), args);
     System.out.println(outputFile);
     System.out.println(answerFile);
-    System.out.println(readFile2String(outputFile));
     //检验结果
-    // verifyList(readFile2String(outputFile), readFile2String(answerFile));
+    verifyList(readFile2String(outputFile), readFile2String(answerFile));
 
     System.out.println("恭喜通过~");
   }

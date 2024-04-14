@@ -18,9 +18,8 @@ public class TransitiveClosureReducerImpl extends TransitiveClosureReducer {
 
     ArrayList<String> list0 = new ArrayList<String>();
     ArrayList<String> list1 = new ArrayList<String>();
-    System.out.println("Reduce");
+    // System.out.println("Reduce" + " " + key.toString());
     for (Text value : values) {
-      System.out.println(value.toString());
       String[] valueArray = value.toString().split(",");
       if (valueArray[0].equals("0")) {
         list0.add(valueArray[1]);
@@ -31,7 +30,7 @@ public class TransitiveClosureReducerImpl extends TransitiveClosureReducer {
 
     for (String value0 : list0) {
       for (String value1 : list1) {
-        context.write(new Text(value0), new Text(value1));
+        context.write(new Text(value1), new Text(value0));
       }
     }
   }

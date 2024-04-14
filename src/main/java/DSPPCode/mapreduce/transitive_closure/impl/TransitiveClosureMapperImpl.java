@@ -10,11 +10,14 @@ public class TransitiveClosureMapperImpl extends TransitiveClosureMapper{
       throws IOException, InterruptedException
   {
     String line = value.toString();
-    System.out.println("line: " + line);
-    String[] split = line.split("\t");
+    // System.out.println("line: " + line);
+    if (line.startsWith("child")) {
+      return;
+    }
+    String[] split = line.split("\\s+");
     String member1 = split[0];
     String member2 = split[1];
-    System.out.println("member1: " + member1 + " member2: " + member2);
+    // System.out.println("member1: " + member1 + " member2: " + member2);
     context.write(new Text(member1), new Text("0" + "," + member2));
     context.write(new Text(member2), new Text("1" + "," + member1));
   }
