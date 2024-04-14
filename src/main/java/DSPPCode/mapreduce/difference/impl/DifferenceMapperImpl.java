@@ -2,8 +2,7 @@ package DSPPCode.mapreduce.difference.impl;
 
 import DSPPCode.mapreduce.difference.question.DifferenceMapper;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.lib.input.FileSplit;
+import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import java.io.IOException;
 
 public class DifferenceMapperImpl extends DifferenceMapper {
