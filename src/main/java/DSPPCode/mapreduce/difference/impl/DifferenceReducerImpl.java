@@ -2,6 +2,7 @@ package DSPPCode.mapreduce.difference.impl;
 
 import DSPPCode.mapreduce.difference.question.DifferenceReducer;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.lib.input.FileSplit;
 import java.io.IOException;
@@ -14,8 +15,8 @@ public class DifferenceReducerImpl extends DifferenceReducer{
   public void reduce(Text key, Iterable<Text> values, Context context)
       throws IOException, InterruptedException
   {
-    Map<String, boolean> RMap = new HashMap<>();
-    Map<String, boolean> SMap = new HashMap<>();
+    Map<String, Boolean> RMap = new HashMap<>();
+    Map<String, Boolean> SMap = new HashMap<>();
     for (Text value : values) {
       String[] split = value.toString().split(" ");
       String name = split[0];
@@ -28,7 +29,8 @@ public class DifferenceReducerImpl extends DifferenceReducer{
     }
     for (String id : RMap.keySet()) {
       if (!SMap.containsKey(id)) {
-        context.write(key, new Text(id));
+        int idInt = Integer.parseInt(id);
+        context.write(key, new IntWritable(idInt));
       }
     }
   }
