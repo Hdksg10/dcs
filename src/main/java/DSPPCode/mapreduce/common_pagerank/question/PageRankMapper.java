@@ -22,7 +22,7 @@ public class PageRankMapper extends Mapper<LongWritable, Text, Text, ReducePageR
   public void map(LongWritable key, Text value, Context context)
       throws IOException, InterruptedException {
     // 以空格为分隔符切分
-    String[] pageInfo = value.toString().split(" ");
+    String[] pageInfo = value.toString().split("\\s+");
     // 网页的排名值
     double pageRank = Double.parseDouble(pageInfo[1]);
     // 网页的出站链接数
@@ -40,6 +40,7 @@ public class PageRankMapper extends Mapper<LongWritable, Text, Text, ReducePageR
     }
     writable = new ReducePageRankWritable();
     // 保存网页信息并标识
+    // System.out.println(value.toString());
     writable.setData(value.toString());
     writable.setTag(ReducePageRankWritable.PAGE_INFO);
     // 以输入的网页信息的网页名称为key进行输出
