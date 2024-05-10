@@ -1,8 +1,8 @@
 package DSPPTest.student.spark.eulercircuit;
 
 import DSPPCode.spark.eulercircuit.impl.EulerCircuitImpl;
-import DSPPCode.spark.progressive_students.impl.ProgressiveStudentsImpl;
-import DSPPCode.spark.progressive_students.question.ProgressiveStudents;
+// import DSPPCode.spark.progressive_students.impl.ProgressiveStudentsImpl;
+// import DSPPCode.spark.progressive_students.question.ProgressiveStudents;
 import DSPPTest.student.TestTemplate;
 import org.junit.Test;
 
