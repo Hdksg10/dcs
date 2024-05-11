@@ -14,15 +14,21 @@ import java.util.List;
 import java.util.HashMap;
 import scala.reflect.ClassTag;
 
+import org.apache.spark.mllib.linalg.Vector;
+import org.apache.spark.mllib.linalg.Vectors;
+
 public class KNNImpl extends KNN{
 
   private static double euclideanDistance(double[] x1, double[] x2) {
-    assert x1.length == x2.length;
-    double sum = 0;
-    for (int i = 0; i < x1.length; i++) {
-      sum += Math.pow(x1[i] - x2[i], 2);
-    }
-    return Math.sqrt(sum);
+    // assert x1.length == x2.length;
+    // double sum = 0;
+    // for (int i = 0; i < x1.length; i++) {
+    //   sum += Math.pow(x1[i] - x2[i], 2);
+    // }
+    // return sum;
+    Vector v1 = Vectors.dense(x1);
+    Vector v2 = Vectors.dense(x2);
+    return Vectors.sqdist(v1, v2);
   }
 
   public KNNImpl(int k) {
@@ -33,23 +39,22 @@ public class KNNImpl extends KNN{
     // JavaSparkContext jsc = JavaSparkContext.fromSparkContext(SparkSession.getActiveSession().get().sparkContext());
     // // List<Data> queryDataList = queryData.collect();
     // final Broadcast<JavaRDD<Data>> queryDataBroadcast = jsc.broadcast(queryData);
-    trainData = trainData.cache();
-    SparkSession ss = SparkSession.builder().getOrCreate();
-    SparkContext sc = ss.sparkContext();
-    JavaSparkContext jsc = JavaSparkContext.fromSparkContext(sc);
+    // SparkSession ss = SparkSession.builder().getOrCreate();
+    // SparkContext sc = ss.sparkContext();
+    // JavaSparkContext jsc = JavaSparkContext.fromSparkContext(sc);
     List<Data> queryDataList = queryData.collect();
-    final Broadcast<List<Data>> queryDataBroadcast = jsc.broadcast(queryDataList);
+    // final Broadcast<List<Data>> queryDataBroadcast = jsc.broadcast(queryDataList);
 
     return trainData.flatMapToPair(
         line -> {
           List<Tuple2<Data, Data>> result = new ArrayList<>();
-          List<Data> queryDataBroadcastList = queryDataBroadcast.value();
-          for (Data data : queryDataBroadcastList) {
+          // List<Data> queryDataBroadcastList = queryDataList;
+          for (Data data : queryDataList) {
             result.add(new Tuple2<>(line, data));
           }
           return result.iterator();
         }
-    ).cache();
+    );
 
     // return trainData.cartesian(queryDataBroadcast.getValue());
   }
