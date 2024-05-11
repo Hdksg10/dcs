@@ -3,76 +3,85 @@ package DSPPCode.spark.connected_components.impl;
 import DSPPCode.spark.connected_components.question.ConnectedComponents;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
-import scala.Int;
+import scala.Tuple2;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
-import java.util.HashMap;
+
 
 
 
 public class ConnectedComponentsImpl extends ConnectedComponents{
-  private static ArrayList<Integer> bfs (int start, HashMap<Integer,
-      ArrayList<Integer>> nodes,
-      HashMap<Integer, Boolean> isVisited){
-      ArrayList<Integer> cc = new ArrayList<>();
-      ArrayList<Integer> queue = new ArrayList<>();
-      cc.add(start);
-      queue.add(start);
-      isVisited.put(start, true);
-      while (!queue.isEmpty()) {
-        int node = queue.get(0);
-        queue.remove(0);
-        ArrayList<Integer> linkNodes = nodes.get(node);
-        for (int linkNode: linkNodes) {
-          if (!isVisited.containsKey(linkNode)) {
-            cc.add(linkNode);
-            queue.add(linkNode);
-            isVisited.put(linkNode, true);
+
+  private static JavaPairRDD<String, Integer> toMinRDD(JavaRDD<String> ccRDD) {
+    return ccRDD.mapToPair(
+        (line) -> {
+          String[] nodes = line.split("\\s+");
+          String node = nodes[0];
+          int minID = Integer.parseInt(node);
+          for (int i = 1; i < nodes.length; i++) {
+            String n = nodes[i];
+            int id = Integer.parseInt(n);
+            if (id < minID) {
+              minID = id;
+            }
           }
+          return new Tuple2<>(node, minID);
         }
-      }
-      return cc;
+    );
   }
 
   public JavaPairRDD<String, Integer> getcc(JavaRDD<String> text)
   {
     JavaRDD<String> ccRDD = text;
+    JavaPairRDD<String, Integer> minRDD = toMinRDD(ccRDD);
     boolean isChanged = true; // iter at least once
     while (isChanged){
-      JavaRDD<String> new_ccRDD = ccRDD.mapPartitions(
-          iterator -> {
-            List<String> local_cc = new ArrayList<>();
-            HashMap<Integer, Boolean> isVisited = new HashMap<>();
-            HashMap<Integer, ArrayList<Integer>> nodes = new HashMap<>();
-            while (iterator.hasNext()) {
-              String line = iterator.next();
-              String [] nodes_str = line.split("\\s+");
-              int node1 = Integer.parseInt(nodes_str[0]);
-              ArrayList<Integer> linkNodes = new ArrayList<>();
-              for (int i = 1; i < nodes_str.length; i++){
-                linkNodes.add(Integer.parseInt(nodes_str[i]));
-              }
-              nodes.put(node1, linkNodes);
+      JavaPairRDD<String, String> deRDD = ccRDD.flatMapToPair(
+          (String line) -> {
+            String[] nodes = line.split("\\s+");
+            String node = nodes[0];
+            ArrayList<Tuple2<String, String>> edges = new ArrayList<>();
+            for (int i = 1; i < nodes.length; i++) {
+              edges.add(new Tuple2<>(node, nodes[i]));
             }
-            for (int node: nodes.keySet()) {
-              if (!isVisited.containsKey(node)) {
-                ArrayList<Integer> cc = bfs(node, nodes, isVisited);
-                StringBuilder sb = new StringBuilder();
-                for (int i = 0; i < cc.size(); i++) {
-                  sb.append(cc.get(i));
-                  if (i != cc.size() - 1) {
-                    sb.append(" ");
-                  }
+            // virtual edges
+            for (int i = 1; i < nodes.length; i++) {
+              for (int j = 1; j < nodes.length; j++) {
+                if (i != j) {
+                  edges.add(new Tuple2<>(nodes[i], nodes[j]));
                 }
-                local_cc.add(sb.toString());
               }
             }
-            return local_cc.iterator();
+
+            // add self-loop for isolated node
+            if (edges.isEmpty()) {
+              edges.add(new Tuple2<>(node, node));
+            }
+            return edges.iterator();
           }
       );
-      
+    JavaRDD<String> ccRDD2 = deRDD.groupByKey().map(
+        (tuple) -> {
+          String node = tuple._1;
+          Iterator<String> iter = tuple._2().iterator();
+          ArrayList<String> cc = new ArrayList<>();
+          while (iter.hasNext()) {
+            cc.add(iter.next());
+          }
+          StringBuilder sb = new StringBuilder();
+          for (String s:cc) {
+            sb.append(s);
+            sb.append(" ");
+          }
+          return node + " " + sb;
+        }
+    );
+    JavaPairRDD<String, Integer> minRDD2 = toMinRDD(ccRDD2);
+    isChanged = isChange(minRDD, minRDD2);
+    ccRDD = ccRDD2;
+    minRDD = minRDD2;
+
     }
-    return null;
+    return minRDD;
   }
 }
